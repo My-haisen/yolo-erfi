@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
+
 from ultralytics.utils.metrics import OKS_SIGMA
 from ultralytics.utils.ops import crop_mask, xywh2xyxy, xyxy2xywh
 from ultralytics.utils.tal import RotatedTaskAlignedAssigner, TaskAlignedAssigner, dist2bbox, dist2rbox, make_anchors
@@ -15,18 +16,20 @@ from ultralytics.utils.torch_utils import autocast
 
 from .metrics import bbox_iou, probiou
 from .tal import bbox2dist
+
+
 class IMLoss(nn.Module):
-    """
-    Interval-Modulated Loss, IM-Loss
+    """Interval-Modulated Loss, IM-Loss.
 
     The modulation threshold μ is fixed to 0.5.
     """
+
     def __init__(self, loss_fcn):
-        super(IMLoss, self).__init__()
+        super().__init__()
 
         self.loss_fcn = loss_fcn
         self.reduction = loss_fcn.reduction
-        self.loss_fcn.reduction = 'none'
+        self.loss_fcn.reduction = "none"
         self.mu = 0.5
 
     def forward(self, pred, true):
@@ -43,9 +46,9 @@ class IMLoss(nn.Module):
 
         loss = loss * modulating_weight
 
-        if self.reduction == 'mean':
+        if self.reduction == "mean":
             return loss.mean()
-        elif self.reduction == 'sum':
+        elif self.reduction == "sum":
             return loss.sum()
         else:
             return loss
@@ -233,7 +236,7 @@ class v8DetectionLoss:
         device = next(model.parameters()).device  # get model device
         h = model.args  # hyperparameters
         m = model.model[-1]  # Detect() module
-        #self.bce = nn.BCEWithLogitsLoss(reduction="none")
+        # self.bce = nn.BCEWithLogitsLoss(reduction="none")
         self.bce = IMLoss(nn.BCEWithLogitsLoss(reduction="none"))
         self.hyp = h
         self.stride = m.stride  # model strides
