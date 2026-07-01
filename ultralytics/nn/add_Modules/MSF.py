@@ -1,6 +1,5 @@
-import math
-import torch.nn as nn
 import torch
+import torch.nn as nn
 
 
 def autopad(k, p=None, d=1):  # kernel, padding, dilation
@@ -34,12 +33,10 @@ class Conv(nn.Module):
 
 
 class MSF(nn.Module):
-    '''
-    superficial detail fusion module
-    '''
+    """Superficial detail fusion module."""
 
     def __init__(self, channels=64, r=4):
-        super(MSF, self).__init__()
+        super().__init__()
         inter_channels = max(1, channels // r)
 
         self.Recalibrate = nn.Sequential(
@@ -64,7 +61,7 @@ class MSF(nn.Module):
 
         # 确保模型在初始化时就被移到 CUDA 上（如果可用）
         if torch.cuda.is_available():
-            self.to('cuda')
+            self.to("cuda")
 
     def forward(self, data):
         x1, x2 = data
@@ -85,5 +82,3 @@ class MSF(nn.Module):
         w = self.sigmoid(local_w * global_w)  ## 计算特征x1的权重
         xo = w * x1 + (1 - w) * x2  ## fusion results ## 特征聚合
         return xo
-
-
